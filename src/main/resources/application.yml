@@ -4,6 +4,9 @@ spring:
       enabled: true
   datasource:
     url: jdbc:h2:mem:test
+  web:
+    locale-resolver: fixed
+    locale: en
 #  jpa:
 #    show-sql: true
 #    properties:
