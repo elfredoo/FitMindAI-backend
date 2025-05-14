@@ -1,23 +1,44 @@
 package com.ecommerce.project.security.services;
 
+import com.ecommerce.project.exception.APIException;
+import com.ecommerce.project.exception.ResourceNotFoundException;
+import com.ecommerce.project.payload.UserDTO;
 import com.ecommerce.project.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.response.MessageResponse;
+import com.ecommerce.project.security.response.UserInfoResponse;
+import com.ecommerce.project.util.AuthUtil;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.project.model.User;
 
+import java.util.List;
+
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
+    private final AuthUtil authUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    public UserDetailsServiceImpl(UserRepository userRepository, AuthUtil authUtil, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
+        this.authUtil = authUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -30,4 +51,66 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
 
+    @Transactional
+    public UserInfoResponse updateUser(UserDTO userDTO) {
+        Long currUserId = authUtil.loggedInUserId();
+
+        User user = userRepository.findById(currUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", currUserId));
+
+        String normalizedPhoneNumber = userDTO.getPhoneNumber().replaceAll("\\s+", "");
+        validateCredentials(userDTO.getUsername(), userDTO.getEmail(), normalizedPhoneNumber, user);
+
+        user.setUserName(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        String phoneNumber = validatePhoneNumber(userDTO.getPhoneNumber());
+        user.setPhoneNumber(phoneNumber);
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }else{
+            throw new APIException("Password can't be empty.");
+        }
+
+
+        userRepository.save(user);
+
+        UserDetails updatedUserDetails = loadUserByUsername(user.getUserName());
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                updatedUserDetails,
+                updatedUserDetails.getPassword(),
+                updatedUserDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+        List<String> roles = user.getRoles().stream().map((role) -> role.getRoleName().name()).toList();
+
+
+        return new UserInfoResponse(currUserId,user.getUserName(),user.getPhoneNumber(),user.getEmail(),roles);
+    }
+
+    private void validateCredentials(String userName, String email,String phoneNumber, User user) {
+        if(!user.getUserName().equals(userName) && userRepository.existsByUserName(userName)){
+            throw new APIException("Username is already taken.");
+        }
+        if(!user.getEmail().equals(email)&&userRepository.existsByEmail(email)){
+            throw new APIException("Email is already in use.");
+        }
+        if(!user.getPhoneNumber().equals(phoneNumber) && userRepository.existsByPhoneNumber(phoneNumber)){
+            throw new APIException("Phone number is already in use.");
+        }
+
+    }
+
+    public String validatePhoneNumber(String phoneNumber) {
+        try{
+            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, null);
+            boolean valid = phoneUtil.isValidNumber(numberProto);
+            if (!valid) {
+                throw new APIException("Invalid phone number format.");
+            }
+            return phoneNumber;
+        } catch (NumberParseException e) {
+            throw new APIException("Invalid phone number.");
+        }
+    }
 }

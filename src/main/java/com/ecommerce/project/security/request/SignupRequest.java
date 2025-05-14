@@ -20,6 +20,9 @@ public class SignupRequest {
     @Email
     private String email;
 
+    @Size(min = 8)
+    private String phoneNumber;
+
     @Getter
     @Setter
     private Set<String> role;

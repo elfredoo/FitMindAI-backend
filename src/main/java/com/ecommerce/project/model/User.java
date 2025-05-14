@@ -17,7 +17,8 @@ import java.util.Set;
 @Table(name = "users",
         uniqueConstraints = {
         @UniqueConstraint(columnNames = "username"),
-        @UniqueConstraint(columnNames = "email")
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "phone_number")
         })
 public class User {
     @Id
@@ -41,11 +42,16 @@ public class User {
     @Column(name ="password")
     private String password;
 
-    public User(String userName, String email, String password) {
+    public User(String userName, String email, String password, String phoneNumber) {
         this.userName = userName;
         this.email = email;
         this.password = password;
+        this.phoneNumber = phoneNumber;
     }
+
+    @Size(min = 8)
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
     @Setter
     @Getter
@@ -73,5 +79,4 @@ public class User {
             cascade= {CascadeType.PERSIST, CascadeType.MERGE},
             orphanRemoval = true)
     private Set<Product> products;
-
 }

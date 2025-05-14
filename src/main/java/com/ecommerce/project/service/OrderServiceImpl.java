@@ -4,11 +4,18 @@ import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.OrderDTO;
+import com.ecommerce.project.payload.OrderDTOResponse;
 import com.ecommerce.project.payload.OrderItemDTO;
+import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
+import com.ecommerce.project.util.AuthUtil;
 import jakarta.transaction.Transactional;
 import org.aspectj.weaver.ast.Or;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,8 +32,9 @@ public class OrderServiceImpl implements OrderService{
     private final ProductRepository productRepository;
     private final CartService cartService;
     private final ModelMapper modelMapper;
+    private final AuthUtil authUtil;
 
-    public OrderServiceImpl(CartRepository cartRepository, AddressRepository addressRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository, CartService cartService, ModelMapper modelMapper) {
+    public OrderServiceImpl(CartRepository cartRepository, AddressRepository addressRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository, CartService cartService, ModelMapper modelMapper, AuthUtil authUtil) {
         this.cartRepository = cartRepository;
         this.addressRepository = addressRepository;
         this.orderRepository = orderRepository;
@@ -35,6 +43,7 @@ public class OrderServiceImpl implements OrderService{
         this.productRepository = productRepository;
         this.cartService = cartService;
         this.modelMapper = modelMapper;
+        this.authUtil = authUtil;
     }
 
     @Override
@@ -66,6 +75,7 @@ public class OrderServiceImpl implements OrderService{
             throw new APIException("Cart is empty");
         }
 
+        System.out.println("cartItems"+ cartItems.size());
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem cartItem : cartItems) {
             OrderItem orderItem = new OrderItem();
@@ -78,8 +88,10 @@ public class OrderServiceImpl implements OrderService{
         }
 
         orderItems = orderItemRepository.saveAll(orderItems);
+        order.setOrderItems(orderItems);
 
-        cart.getCartItems().forEach(item ->{
+        List<CartItem> cartItemsCopy = new ArrayList<>(cart.getCartItems());
+        cartItemsCopy.forEach(item -> {
             int quantity = item.getQuantity();
             Product product = item.getProduct();
 
@@ -96,5 +108,27 @@ public class OrderServiceImpl implements OrderService{
         orderDTO.setAddressId(addressId);
 
         return orderDTO;
+    }
+
+    @Override
+    public OrderDTOResponse getUserOrders(Integer pageNumber, Integer pageSize, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equals("asc")? Sort.by("totalAmount").ascending() : Sort.by("totalAmount").descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        String email = authUtil.loggedInEmail();
+        Page<Order> page = orderRepository.findAllByEmail(email, pageDetails);
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        for (Order userOrder : page.getContent()) {
+            OrderDTO orderDTO = modelMapper.map(userOrder, OrderDTO.class);
+            orderDTOS.add(orderDTO);
+        }
+        System.out.println(orderDTOS);
+        OrderDTOResponse orderDTOResponse = new OrderDTOResponse();
+        orderDTOResponse.setContent(orderDTOS);
+        orderDTOResponse.setPageNumber(page.getNumber());
+        orderDTOResponse.setPageSize(page.getSize());
+        orderDTOResponse.setTotalElements(page.getTotalElements());
+        orderDTOResponse.setTotalPages(page.getTotalPages());
+        orderDTOResponse.setLastPage(page.isLast());
+        return orderDTOResponse;
     }
 }

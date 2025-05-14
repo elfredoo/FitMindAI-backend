@@ -3,9 +3,11 @@ package com.ecommerce.project.service;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Category;
+import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.CategoryDTO;
 import com.ecommerce.project.payload.CategoryResponse;
 import com.ecommerce.project.repository.CategoryRepository;
+import com.ecommerce.project.repository.OrderItemRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +23,12 @@ import java.util.*;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
+    private final OrderItemRepository orderItemRepository;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper, OrderItemRepository orderItemRepository) {
         this.categoryRepository = categoryRepository;
         this.modelMapper = modelMapper;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Override
@@ -55,6 +59,9 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDTO deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new ResourceNotFoundException("Category","categoryId",categoryId));
+        for (Product product : category.getProducts()) {
+            orderItemRepository.deleteAllByProductId(product.getProductId());
+        }
         categoryRepository.delete(category);
         return modelMapper.map(category, CategoryDTO.class);
     }

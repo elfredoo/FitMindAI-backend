@@ -6,9 +6,11 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 //import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,8 +22,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,7 +34,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.ecommerce.project.security.jwt.AuthEntryPointJwt;
 import com.ecommerce.project.security.jwt.AuthTokenFilter;
 import com.ecommerce.project.security.services.UserDetailsServiceImpl;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static org.springframework.http.HttpHeaders.*;
+import static org.springframework.http.HttpMethod.*;
+
+
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -38,10 +50,15 @@ import java.util.Set;
 //@EnableMethodSecurity
 public class WebSecurityConfig {
     @Autowired
-    UserDetailsServiceImpl userDetailsService;
+    @Lazy
+    UserDetailsService userDetailsService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
+    @Value("${frontend.url}")
+    String frontEndUrl;
+
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -80,11 +97,11 @@ public class WebSecurityConfig {
                         auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
-//                                .requestMatchers("/api/admin/**").permitAll()
-//                                .requestMatchers("/api/public/**").permitAll()
+                                .requestMatchers("/api/public/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()
+//                                .requestMatchers("/api/admin/**").permitAll()
                                 .anyRequest().authenticated()
                 );
 
@@ -93,6 +110,8 @@ public class WebSecurityConfig {
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.headers(headers ->
                 headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
@@ -136,17 +155,17 @@ public class WebSecurityConfig {
 
             // Create users if not already present
             if (!userRepository.existsByUserName("user1")) {
-                User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
+                User user1 = new User("user1", "user1@example.com", "+48515247850" ,passwordEncoder.encode("password1"));
                 userRepository.save(user1);
             }
 
             if (!userRepository.existsByUserName("seller1")) {
-                User seller1 = new User("seller1", "seller1@example.com", passwordEncoder.encode("password2"));
+                User seller1 = new User("seller1", "seller1@example.com","+48898567847", passwordEncoder.encode("password2"));
                 userRepository.save(seller1);
             }
 
             if (!userRepository.existsByUserName("admin")) {
-                User admin = new User("admin", "admin@example.com", passwordEncoder.encode("adminPass"));
+                User admin = new User("admin", "admin@example.com","+48519578401", passwordEncoder.encode("adminPass"));
                 userRepository.save(admin);
             }
 
@@ -166,5 +185,55 @@ public class WebSecurityConfig {
                 userRepository.save(admin);
             });
         };
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                frontEndUrl,
+                "http://127.0.0.1:5173"
+        ));
+
+        corsConfiguration.setAllowedHeaders(List.of(
+                ORIGIN,
+                ACCESS_CONTROL_ALLOW_ORIGIN,
+                CONTENT_TYPE,
+                ACCEPT,
+                AUTHORIZATION,
+
+                ACCESS_CONTROL_REQUEST_METHOD,
+                ACCESS_CONTROL_REQUEST_HEADERS
+
+        ));
+
+        corsConfiguration.setExposedHeaders(List.of(
+                ORIGIN,
+                ACCESS_CONTROL_ALLOW_ORIGIN,
+                CONTENT_TYPE,
+                ACCEPT,
+                AUTHORIZATION,
+
+                ACCESS_CONTROL_REQUEST_METHOD,
+                ACCESS_CONTROL_REQUEST_HEADERS
+
+        ));
+
+        corsConfiguration.setAllowedMethods(List.of(
+                GET.name(),
+                POST.name(),
+                PUT.name(),
+                PATCH.name(),
+                DELETE.name(),
+                OPTIONS.name()
+        ));
+
+        corsConfiguration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
     }
 }

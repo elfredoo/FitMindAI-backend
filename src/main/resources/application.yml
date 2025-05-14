@@ -3,18 +3,18 @@ spring:
     console:
       enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce
-    username: postgres
-    password: admin
-#    url: jdbc:mysql://localhost:3306/ecommerce
-#    username: root
-#    password: admin
+#    url: jdbc:postgresql://myapplication.crsaq4aao49p.eu-north-1.rds.amazonaws.com:5432/ecommerce
+#    username: postgres
+#    password: adminadmin
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USER}
+    password: ${DATASOURCE_PASSWORD}
   web:
     locale-resolver: fixed
     locale: en
   app:
    jwtSecret: mySecretKey123123123123123123112312312321321321312
-   jwtExpirationMs: 3000000
+   jwtExpirationMs: 999999999
   ecom:
     app:
        jwtCookieName: springBootEcom
@@ -30,6 +30,26 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  ai:
+    openai:
+      api-key: ${MY_OPENAI_API_KEY}
 #        dialect: org.hibernate.dialect.MySQLDialect
 project:
   image: images/
+  #Needed if using elastic beanstalk
+server:
+  port: ${PORT:8080}
+image:
+  base:
+#    url: https://sb-ecom-s3d4.onrender.com/images
+      url: http://localhost:8080/images
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.ecommerce.project: DEBUG
+#STRIPE KEY
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY}
+frontend:
+  url:${FRONTEND_URL}
