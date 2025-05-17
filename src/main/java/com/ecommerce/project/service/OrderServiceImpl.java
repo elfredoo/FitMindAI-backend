@@ -1,5 +1,6 @@
 package com.ecommerce.project.service;
 
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.*;
@@ -121,7 +122,6 @@ public class OrderServiceImpl implements OrderService{
             OrderDTO orderDTO = modelMapper.map(userOrder, OrderDTO.class);
             orderDTOS.add(orderDTO);
         }
-        System.out.println(orderDTOS);
         OrderDTOResponse orderDTOResponse = new OrderDTOResponse();
         orderDTOResponse.setContent(orderDTOS);
         orderDTOResponse.setPageNumber(page.getNumber());
@@ -130,5 +130,14 @@ public class OrderServiceImpl implements OrderService{
         orderDTOResponse.setTotalPages(page.getTotalPages());
         orderDTOResponse.setLastPage(page.isLast());
         return orderDTOResponse;
+    }
+
+    @Override
+    public OrderDTO getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        System.out.println(orderDTO);
+        return orderDTO;
     }
 }

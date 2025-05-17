@@ -3,9 +3,11 @@ package com.ecommerce.project.service;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Address;
+import com.ecommerce.project.model.Order;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AddressDTO;
 import com.ecommerce.project.repository.AddressRepository;
+import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.util.AuthUtil;
 import jakarta.transaction.Transactional;
@@ -24,12 +26,14 @@ public class AddressServiceImpl implements AddressService{
     private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public AddressServiceImpl(AuthUtil authUtil, AddressRepository addressRepository, ModelMapper modelMapper, UserRepository userRepository) {
+    public AddressServiceImpl(AuthUtil authUtil, AddressRepository addressRepository, ModelMapper modelMapper, UserRepository userRepository, OrderRepository orderRepository) {
         this.authUtil = authUtil;
         this.addressRepository = addressRepository;
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Transactional
@@ -99,8 +103,14 @@ public class AddressServiceImpl implements AddressService{
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "addressId", addressId));
         User currUser = authUtil.loggedInUser();
+        List<Order> orders = orderRepository.findByAddress(address);
+
+        if(!orders.isEmpty()){
+            throw new APIException("Unable to delete address associated with order under process.");
+        }
         currUser.getAddresses().removeIf((addr)->addr.getAddressId().equals(addressId));
         userRepository.save(currUser);
+
 
         addressRepository.delete(address);
 

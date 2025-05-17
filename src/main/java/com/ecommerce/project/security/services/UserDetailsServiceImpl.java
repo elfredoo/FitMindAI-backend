@@ -53,6 +53,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Transactional
     public UserInfoResponse updateUser(UserDTO userDTO) {
+        System.out.println(userDTO);
         Long currUserId = authUtil.loggedInUserId();
 
         User user = userRepository.findById(currUserId)
@@ -67,10 +68,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         user.setPhoneNumber(phoneNumber);
         if (userDTO.getPassword() != null && !userDTO.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        }else{
-            throw new APIException("Password can't be empty.");
         }
-
 
         userRepository.save(user);
 

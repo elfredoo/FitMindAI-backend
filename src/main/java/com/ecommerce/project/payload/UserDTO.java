@@ -26,7 +26,6 @@ public class UserDTO {
     @Size(min = 8)
     private String phoneNumber;
 
-    @NotBlank
     @Size(min = 6, max = 40)
     private String password;
 }

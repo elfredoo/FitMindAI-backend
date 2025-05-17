@@ -90,28 +90,29 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-//                                .requestMatchers("/api/admin/**").permitAll()
-                                .anyRequest().authenticated()
-                );
-
-        http.authenticationProvider(authenticationProvider());
-
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.headers(headers ->
-                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/public/**",
+                                "/api/test/**",
+                                "/images/**",
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-resources"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }

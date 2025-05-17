@@ -63,4 +63,10 @@ public class OrderController {
          OrderDTOResponse orderDTOResponse = orderService.getUserOrders(pageNumber, pageSize, sortOrder);
          return new ResponseEntity<>(orderDTOResponse,HttpStatus.OK);
     }
+
+    @GetMapping("/orders/{orderId}")
+    public ResponseEntity<OrderDTO> getOrder(@PathVariable Long orderId){
+        OrderDTO orderDTO = orderService.getOrderById(orderId);
+        return new ResponseEntity<>(orderDTO,HttpStatus.OK);
+    }
 }

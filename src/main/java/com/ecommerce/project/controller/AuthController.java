@@ -57,6 +57,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest){
+        System.out.println(loginRequest);
         Authentication authentication;
         try{
             authentication = authenticationManager
