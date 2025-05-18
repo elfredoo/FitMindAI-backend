@@ -227,5 +227,5 @@ Project licensed under MIT — free to use and modify, including commercially.
 
 <p align="center">
   👤 Author: <strong>Bartek Rafalik</strong><br>
-  🔗 <a href="https://github.com/elfredoo/FitMindAI-frontend">Backend Repository</a>
+  🔗 <a href="https://github.com/elfredoo/FitMindAI-frontend">Frontend Repository</a>
 </p>
