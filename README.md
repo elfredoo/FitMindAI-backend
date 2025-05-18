@@ -209,12 +209,13 @@ spring:
     hibernate:
       ddl-auto: update
 ```
-Set environment variables
-JWT_SECRET
+### Set enviroment variables
 
-STRIPE_API_KEY
+- `JWT_SECRET`  
+- `STRIPE_API_KEY`  
+- `OPENAI_API_KEY`  
 
-OPENAI_API_KEY
+---
 
 Run the application
 ```
