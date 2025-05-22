@@ -2,7 +2,10 @@ package com.ecommerce.project.security.services;
 
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
+import com.ecommerce.project.model.AppRole;
+import com.ecommerce.project.model.Role;
 import com.ecommerce.project.payload.UserDTO;
+import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.response.MessageResponse;
@@ -33,12 +36,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+    private final RoleRepository roleRepository;
 
-    public UserDetailsServiceImpl(UserRepository userRepository, AuthUtil authUtil, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public UserDetailsServiceImpl(UserRepository userRepository, AuthUtil authUtil, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.authUtil = authUtil;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -83,7 +88,34 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         List<String> roles = user.getRoles().stream().map((role) -> role.getRoleName().name()).toList();
 
 
-        return new UserInfoResponse(currUserId,user.getUserName(),user.getPhoneNumber(),user.getEmail(),roles);
+        return new UserInfoResponse(currUserId,user.getUserName(),user.getPhoneNumber(),user.getEmail(),roles, user.getBalance(), user.getTotalEarnings());
+    }
+
+    @Transactional
+    public UserInfoResponse becomeSeller() {
+        User currUser = authUtil.loggedInUser();
+
+        if(currUser.getRoles().stream().noneMatch(role->role.getRoleName().equals(AppRole.ROLE_SELLER)|| role.getRoleName().equals(AppRole.ROLE_ADMIN))){
+            Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
+                    .orElseGet(() -> {
+                        Role newSellerRole = new Role(AppRole.ROLE_SELLER);
+                        return roleRepository.save(newSellerRole);
+                    });
+            currUser.getRoles().add(sellerRole);
+            userRepository.save(currUser);
+
+            UserDetails updatedUserDetails = loadUserByUsername(currUser.getUserName());
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                    updatedUserDetails,
+                    updatedUserDetails.getPassword(),
+                    updatedUserDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
+        List<String> roles = currUser.getRoles().stream().map((role) -> role.getRoleName().name()).toList();
+        return new UserInfoResponse(currUser.getUserId(), currUser.getUserName(),currUser.getPhoneNumber(),currUser.getEmail(),roles, currUser.getBalance(), currUser.getTotalEarnings());
+
+
     }
 
     private void validateCredentials(String userName, String email,String phoneNumber, User user) {
@@ -111,4 +143,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new APIException("Invalid phone number.");
         }
     }
+
+
 }

@@ -106,8 +106,11 @@ public class WebSecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/swagger-resources"
+                                "/swagger-resources",
+                                "/error"
                         ).permitAll()
+                        .requestMatchers("/api/seller/**").hasAnyRole("SELLER","ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

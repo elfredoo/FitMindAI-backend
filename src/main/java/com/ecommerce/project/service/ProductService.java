@@ -13,11 +13,15 @@ public interface ProductService {
 
     ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
-    ProductDTO updateProduct(Long productId, ProductDTO product);
+    ProductDTO updateProduct(Long productId, ProductDTO product) throws IOException;
 
     ProductDTO deleteProduct(Long productId);
 
     ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
 
     ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category);
+
+    ProductResponse getSellerProducts(String keyword, String category, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+
+    ProductDTO changeAvailability(long productId, boolean isAvailable);
 }

@@ -15,7 +15,12 @@ public class FileServiceImpl implements FileService{
     public String uploadImage(String path, MultipartFile file) throws IOException {
         String originalFileName = file.getOriginalFilename();
         String uniqueId = UUID.randomUUID().toString();
-        String fileName = uniqueId.concat(originalFileName.substring(originalFileName.lastIndexOf(".")));
+        String fileName = "";
+        try{
+            fileName = uniqueId.concat(originalFileName.substring(originalFileName.lastIndexOf(".")));
+        }catch (StringIndexOutOfBoundsException e){
+            throw new IOException("Invalid multipart file");
+        }
         String filePath = path + File.separator+fileName;
 
         File folder = new File(path);

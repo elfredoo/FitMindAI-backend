@@ -34,8 +34,9 @@ public class OrderServiceImpl implements OrderService{
     private final CartService cartService;
     private final ModelMapper modelMapper;
     private final AuthUtil authUtil;
+    private final DailySalesService dailySalesService;
 
-    public OrderServiceImpl(CartRepository cartRepository, AddressRepository addressRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository, CartService cartService, ModelMapper modelMapper, AuthUtil authUtil) {
+    public OrderServiceImpl(CartRepository cartRepository, AddressRepository addressRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository, CartService cartService, ModelMapper modelMapper, AuthUtil authUtil, DailySalesService dailySalesService) {
         this.cartRepository = cartRepository;
         this.addressRepository = addressRepository;
         this.orderRepository = orderRepository;
@@ -45,6 +46,7 @@ public class OrderServiceImpl implements OrderService{
         this.cartService = cartService;
         this.modelMapper = modelMapper;
         this.authUtil = authUtil;
+        this.dailySalesService = dailySalesService;
     }
 
     @Override
@@ -96,7 +98,25 @@ public class OrderServiceImpl implements OrderService{
             int quantity = item.getQuantity();
             Product product = item.getProduct();
 
+            if(product.getSoldCount() == null){
+                product.setSoldCount(0L);
+            }
+
             product.setQuantity(product.getQuantity() - quantity);
+            product.setSoldCount(product.getSoldCount() + quantity);
+
+            User seller = product.getUser();
+            if(seller != null){
+                if(seller.getTotalEarnings() == null){
+                    seller.setTotalEarnings(0.);
+                }
+                if(seller.getBalance() == null){
+                    seller.setBalance(0.);
+                }
+                seller.setTotalEarnings(seller.getTotalEarnings() + (product.getPrice() * quantity));
+                seller.setBalance(seller.getBalance() + (product.getPrice() * quantity));
+                dailySalesService.updateCreateSales(quantity, product.getSpecialPrice() * quantity, seller);
+            }
 
             productRepository.save(product);
 

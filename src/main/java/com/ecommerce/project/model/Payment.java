@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Data
 @Table(name="payments")
@@ -35,5 +37,17 @@ public class Payment {
         this.pgStatus = pgStatus;
         this.pgResponseMessage = pgResponseMessage;
         this.pgName = pgName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Payment payment = (Payment) o;
+        return Objects.equals(paymentId, payment.paymentId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(paymentId);
     }
 }

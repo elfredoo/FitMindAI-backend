@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
@@ -56,5 +57,17 @@ public class Address {
         this.state = state;
         this.country = country;
         this.zipcode = zipcode;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Address address = (Address) o;
+        return Objects.equals(addressId, address.addressId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(addressId);
     }
 }

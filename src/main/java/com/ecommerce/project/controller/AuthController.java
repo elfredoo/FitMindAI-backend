@@ -84,7 +84,7 @@ public class AuthController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
 
-        UserInfoResponse response = new UserInfoResponse(userId, userDetails.getUsername(), user.getPhoneNumber(), user.getEmail(), roles);
+        UserInfoResponse response = new UserInfoResponse(userId, userDetails.getUsername(), user.getPhoneNumber(), user.getEmail(), roles, user.getBalance(), user.getTotalEarnings());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
@@ -171,7 +171,7 @@ public class AuthController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
 
-        UserInfoResponse response = new UserInfoResponse(userId, userDetails.getUsername(), user.getPhoneNumber(), user.getEmail(), roles);
+        UserInfoResponse response = new UserInfoResponse(userId, userDetails.getUsername(), user.getPhoneNumber(), user.getEmail(), roles, user.getBalance(), user.getTotalEarnings());
 
         return ResponseEntity.ok()
                 .body(response);
@@ -196,5 +196,11 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(userInfoResponse);
+    }
+
+    @PutMapping("/user/become-seller")
+    public ResponseEntity<UserInfoResponse> becomeSeller(){
+        UserInfoResponse userInfoResponse = userDetailsServiceImpl.becomeSeller();
+        return new ResponseEntity<>(userInfoResponse, HttpStatus.OK);
     }
 }
