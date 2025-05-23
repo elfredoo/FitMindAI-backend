@@ -8,7 +8,8 @@
 
 <h2 id="polski">🇵🇱 FitMindAI – Backend</h2>
 
-**FitMindAI-backend** to wydajne i skalowalne REST API dla platformy e-commerce z AI. Odpowiada za obsługę użytkowników, produktów, koszyka, zamówień, płatności i integrację z chatbotem opartym na OpenAI.
+**FitMindAI-backend** to wydajne i skalowalne REST API dla platformy e-commerce z AI. Odpowiada za obsługę użytkowników, produktów, koszyka, zamówień, płatności, integrację z chatbotem opartym na OpenAI oraz zarządzanie kontami sprzedawców. Backend umożliwia sprzedawcom dodawanie, edytowanie i usuwanie własnych produktów, monitorowanie sprzedaży oraz zarządzanie zamówieniami, co pozwala na pełną kontrolę nad prowadzonym biznesem.
+
 
 ---
 
@@ -118,8 +119,7 @@ Projekt na licencji MIT – możesz używać i modyfikować, także komercyjnie.
 
 <h2 id="english">🇬🇧 FitMindAI – Frontend</h2>
 
-**FitMindAI-backend** is a performant and scalable REST API for an AI-powered e-commerce platform. It handles user management, products, cart, orders, payments, and integrates with a chatbot based on OpenAI.
-
+**FitMindAI-backend** is a performant and scalable REST API for an AI-powered e-commerce platform. It handles user management, products, cart, orders, payments, integration with an OpenAI-based chatbot, and seller account management. The backend allows sellers to add, edit, and remove their own products, track sales, and manage orders, providing full control over their business.
 ---
 
 ### 🔐 Security
