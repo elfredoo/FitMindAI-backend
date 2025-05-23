@@ -11,15 +11,15 @@
     }
   ],
   "paths": {
-    "/api/public/categories/{categoryId}": {
+    "/api/seller/products/{productId}": {
       "put": {
         "tags": [
-          "category-controller"
+          "product-controller"
         ],
-        "operationId": "updateCategory",
+        "operationId": "updateProduct",
         "parameters": [
           {
-            "name": "categoryId",
+            "name": "productId",
             "in": "path",
             "required": true,
             "schema": {
@@ -32,7 +32,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CategoryDTO"
+                "$ref": "#/components/schemas/ProductDTO"
               }
             }
           },
@@ -44,7 +44,36 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDTO"
+                  "$ref": "#/components/schemas/ProductDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "deleteProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDTO"
                 }
               }
             }
@@ -52,7 +81,7 @@
         }
       }
     },
-    "/api/products/{productId}/image": {
+    "/api/seller/products/{productId}/image": {
       "put": {
         "tags": [
           "product-controller"
@@ -94,6 +123,88 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller/products/{productId}/availability": {
+      "put": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "changeAvailability",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "boolean"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/public/categories/{categoryId}": {
+      "put": {
+        "tags": [
+          "category-controller"
+        ],
+        "operationId": "updateCategory",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryDTO"
                 }
               }
             }
@@ -188,69 +299,19 @@
         }
       }
     },
-    "/api/admin/products/{productId}": {
+    "/api/auth/user/become-seller": {
       "put": {
         "tags": [
-          "product-controller"
+          "auth-controller"
         ],
-        "operationId": "updateProduct",
-        "parameters": [
-          {
-            "name": "productId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProductDTO"
-              }
-            }
-          },
-          "required": true
-        },
+        "operationId": "becomeSeller",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDTO"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "product-controller"
-        ],
-        "operationId": "deleteProduct",
-        "parameters": [
-          {
-            "name": "productId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductDTO"
+                  "$ref": "#/components/schemas/UserInfoResponse"
                 }
               }
             }
@@ -350,6 +411,47 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller/categories/{categoryId}/product": {
+      "post": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "addProduct",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDTO"
                 }
               }
             }
@@ -698,47 +800,6 @@
         }
       }
     },
-    "/api/admin/categories/{categoryId}/product": {
-      "post": {
-        "tags": [
-          "product-controller"
-        ],
-        "operationId": "addProduct",
-        "parameters": [
-          {
-            "name": "categoryId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProductDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductDTO"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/addresses": {
       "get": {
         "tags": [
@@ -806,6 +867,142 @@
                   "items": {
                     "$ref": "#/components/schemas/AddressDTO"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller/sales": {
+      "get": {
+        "tags": [
+          "sales-controller"
+        ],
+        "operationId": "getUserSales",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "date"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seller/products": {
+      "get": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "getSellerProducts",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "productId"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
                 }
               }
             }
@@ -1245,18 +1442,6 @@
   },
   "components": {
     "schemas": {
-      "CategoryDTO": {
-        "type": "object",
-        "properties": {
-          "categoryId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "categoryName": {
-            "type": "string"
-          }
-        }
-      },
       "ProductDTO": {
         "required": [
           "description",
@@ -1296,6 +1481,25 @@
           "specialPrice": {
             "type": "number",
             "format": "double"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CategoryDTO": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "categoryName": {
+            "type": "string"
           }
         }
       },
@@ -1368,6 +1572,14 @@
             "items": {
               "type": "string"
             }
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalEarnings": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -1606,6 +1818,61 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "DailySalesDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sellerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalEarned": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SalesResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySalesDTO"
+            }
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastPage": {
+            "type": "boolean"
           }
         }
       },
